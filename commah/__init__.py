@@ -6,6 +6,8 @@ from .__version__ import version as __version__
 from . import commah
 from .commah import run
 from .commah import getcosmo
+from commah import examples
+from run import examplePlanck15
 
 __all__ = ['commah', 'run', 'getcosmo']
 

@@ -13,16 +13,18 @@ import commah.cosmology_list as cg
 __author__ = 'Camila Correa and Alan Duffy'
 __email__ = 'mail@alanrduffy.com'
 
-
 def _izip(*iterables):
-    """ Iterate through multiple lists or arrays of equal size """
-    # This izip routine is from itertools
-    # izip('ABCD', 'xy') --> Ax By
-
-    iterators = map(iter, iterables)
+    # zip('ABCD', 'xy') --> Ax By
+    sentinel = object()
+    iterators = [iter(it) for it in iterables]
     while iterators:
-        yield tuple(map(next, iterators))
-
+        result = []
+        for it in iterators:
+            elem = next(it, sentinel)
+            if elem is sentinel:
+                return
+            result.append(elem)
+        yield tuple(result)
 
 def _checkinput(zi, Mi, z=False, verbose=None):
     """ Check and convert any input scalar or array to numpy array """
@@ -104,6 +106,11 @@ def getcosmo(cosmology):
     # No idea why this has to be done by hand but should be O_k = 0
     cosmo = cp.distance.set_omega_k_0(cosmo)
 
+    # Adding baryonic effects option, cosmolopy asks for it
+    if cosmo['omega_b_0']>0:
+        cosmo.update({'baryonic_effects': True})
+    else:
+        cosmo.update({'baryonic_effects': False})
     # Use the cosmology as **cosmo passed to cosmolopy routines
     return(cosmo)
 
@@ -670,7 +677,7 @@ def run(cosmology, zi=0, Mi=1e12, z=False, com=True, mah=True,
     # Create  output file if desired
     if filename:
         print("Output to file %r" % (filename))
-        fout = open(filename, 'wb')
+        fout = open(filename, 'w')
 
     # Create the structured dataset
     try:
